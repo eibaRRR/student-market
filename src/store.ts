@@ -236,7 +236,11 @@ export function sendMessage(senderId: string, receiverId: string, adId: string, 
 
 // Fonctions Annonces
 export function getAds() {
-  return ads.filter(ad => ad.status === 'active');
+  // Migration de secours pour les utilisateurs ayant des données locales anciennes
+  ads.forEach(ad => {
+    if (!ad.status) ad.status = 'active';
+  });
+  return ads.filter(ad => ad.status === 'active' || ad.status === 'pending');
 }
 
 export function getPendingAds() {

@@ -11,7 +11,7 @@ export function createAdCard(ad: Ad): string {
   const isService = ad.isService;
 
   return `
-    <div class="ad-card group animate-fade-in ${karmaClass} relative" onclick="window.router.navigate('details', { id: '${ad.id}' })">
+    <div class="ad-card group ${karmaClass} relative" onclick="window.router.navigate('details', { id: '${ad.id}' })">
       ${user && user.karma > 500 ? '<div class="absolute -top-1 -left-1 w-full h-full rounded-2xl bg-gradient-to-br from-[#0047FF]/10 to-[#8000FF]/10 blur-xl -z-10 group-hover:opacity-100 opacity-0 transition-opacity"></div>' : ''}
       
       <div class="ad-card-img-container relative">

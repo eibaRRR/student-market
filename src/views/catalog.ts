@@ -58,7 +58,7 @@ export function renderCatalog(params?: { category?: string, search?: string }): 
       <div class="flex-grow">
         <div class="mb-6 flex justify-between items-center">
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Catalogue</h1>
-          <span class="text-gray-500 dark:text-gray-400 text-sm" id="results-count">-- annonces</span>
+          <span class="text-primary-500 font-bold text-sm bg-primary-500/10 px-3 py-1 rounded-full border border-primary-500/20" id="results-count">-- annonces</span>
         </div>
         
         <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
