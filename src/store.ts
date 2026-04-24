@@ -155,6 +155,15 @@ export function updateUserAvatar(userId: string, newAvatarUrl: string) {
   }
 }
 
+export function updateUserProfile(userId: string, data: { name: string, email: string }) {
+  const index = users.findIndex(u => u.id === userId);
+  if (index !== -1) {
+    users[index].name = data.name;
+    users[index].email = data.email;
+    persistUsers();
+  }
+}
+
 export function logout() {
   currentUserId = null;
   persistUser();

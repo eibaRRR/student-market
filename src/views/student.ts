@@ -1,4 +1,4 @@
-import { getUserAds, currentUserId, categories, conditions, getUserFavorites, getCurrentUser, updateUserAvatar } from '../store.ts';
+import { getUserAds, currentUserId, categories, conditions, getUserFavorites, getCurrentUser, updateUserAvatar, updateUserProfile } from '../store.ts';
 import { formatPrice, formatDate, showToast } from '../utils.ts';
 import { Ad } from '../types.ts';
 import { createAdCard } from '../components.ts';
@@ -35,7 +35,12 @@ export function renderStudentDashboard(): string {
             <div class="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-[#050505] shadow-lg"></div>
           </div>
           
-          <h2 class="text-2xl font-display font-bold text-white mb-1">${user.name}</h2>
+          <h2 class="text-2xl font-display font-bold text-white mb-1 flex items-center justify-center gap-2">
+            ${user.name}
+            <button id="edit-profile-btn" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/30 hover:text-white transition-all group/edit" title="Modifier le profil">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+          </h2>
           <p class="text-white/40 text-xs uppercase tracking-widest mb-6">${user.email}</p>
           
           <!-- Digital Karma Section -->
@@ -411,6 +416,21 @@ export function setupStudentLogic(params?: any) {
       });
     });
   }
+
+  // Edit Profile Logic
+  document.getElementById('edit-profile-btn')?.addEventListener('click', () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const newName = prompt('Nouveau nom :', user.name);
+    const newEmail = prompt('Nouvelle adresse email :', user.email);
+
+    if (newName && newEmail) {
+      updateUserProfile(user.id, { name: newName, email: newEmail });
+      window.router.components.showToast('Profil mis à jour avec succès !', 'success');
+      window.router.navigate('student'); // Re-render
+    }
+  });
 
   setupDynamicButtons();
 

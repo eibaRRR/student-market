@@ -51,7 +51,7 @@ export function renderAuth(): string {
             <div>
               <div class="flex justify-between">
                 <label class="label-field">Mot de passe</label>
-                <a href="#" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Oublié ?</a>
+                <a href="#" id="forgot-pass-btn" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Oublié ?</a>
               </div>
               <input type="password" id="login-pass" required class="input-field" placeholder="••••••••" value="password123">
             </div>
@@ -135,5 +135,11 @@ export function setupAuthLogic() {
     } else {
       showToast('Cet email est déjà utilisé.', 'error');
     }
+  });
+
+  // Forgot Password
+  document.getElementById('forgot-pass-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast('Un lien de réinitialisation a été envoyé à votre adresse email.', 'info');
   });
 }
