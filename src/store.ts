@@ -147,6 +147,14 @@ export function signup(name: string, email: string, pass: string): boolean {
   return true;
 }
 
+export function updateUserAvatar(userId: string, newAvatarUrl: string) {
+  const index = users.findIndex(u => u.id === userId);
+  if (index !== -1) {
+    users[index].avatar = newAvatarUrl;
+    persistUsers();
+  }
+}
+
 export function logout() {
   currentUserId = null;
   persistUser();
