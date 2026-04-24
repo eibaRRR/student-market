@@ -1,6 +1,6 @@
-import { getUserAds, currentUserId, deleteAd, addAd, categories, conditions, getUserFavorites, getCurrentUser } from '../store.ts';
+import { getUserAds, currentUserId, categories, conditions, getUserFavorites, getCurrentUser } from '../store.ts';
 import { formatPrice, formatDate, showToast } from '../utils.ts';
-import { Ad, User } from '../types.ts';
+import { Ad } from '../types.ts';
 import { createAdCard } from '../components.ts';
 
 export function renderStudentDashboard(): string {
@@ -367,7 +367,7 @@ export function setupStudentLogic(params?: any) {
         const id = (e.currentTarget as HTMLElement).getAttribute('data-status-id');
         const newStatus = (e.currentTarget as HTMLSelectElement).value as any;
         if (id) {
-          import('../store.ts').then(({ updateAdStatus, getUserAds }) => {
+          import('../store.ts').then(({ updateAdStatus }) => {
             updateAdStatus(id, newStatus);
             window.router.components.showToast('Statut mis à jour.', 'success');
             // Re-render completely to update the sidebar counts

@@ -1,5 +1,5 @@
 import { getAdById, getUserById } from '../store.ts';
-import { formatPrice, formatDate, showToast } from '../utils.ts';
+import { formatPrice, formatDate } from '../utils.ts';
 
 export function renderDetails(params: { id: string }): string {
   const ad = getAdById(params.id);
