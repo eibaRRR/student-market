@@ -6,12 +6,6 @@ export function renderCatalog(params?: { category?: string, search?: string }): 
   const currentCat = params?.category || '';
   const currentSearch = params?.search || '';
 
-  const catOptions = categories.map(c =>
-    `<button class="filter-btn px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 whitespace-nowrap transition-colors ${currentCat === c ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-400'}" data-category="${c}">
-      ${c}
-    </button>`
-  ).join('');
-
   return `
     ${createPulseTicker()}
     <div class="animate-fade-in flex flex-col md:flex-row gap-8 mt-6">

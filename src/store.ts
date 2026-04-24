@@ -1,4 +1,4 @@
-import { Ad, User, Category, Stats, AdStatus, Message } from './types.ts';
+import { Ad, User, Category, Stats, AdStatus, Message, PulseEvent } from './types.ts';
 
 // Données initiales si localStorage est vide
 const initialUsers: User[] = [

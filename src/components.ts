@@ -1,4 +1,4 @@
-import { Ad, PulseEvent } from './types.ts';
+import { Ad } from './types.ts';
 import { formatPrice, formatDate } from './utils.ts';
 import { getUserById, getCurrentUser, pulseEvents } from './store.ts';
 

@@ -1,4 +1,4 @@
-import { getAdById, getUserById, updateAdStatus } from '../store.ts';
+import { getAdById, getUserById } from '../store.ts';
 import { formatPrice, formatDate, showToast } from '../utils.ts';
 
 export function renderDetails(params: { id: string }): string {

@@ -1,5 +1,5 @@
 import { getMessages, sendMessage, getUserById, getAdById, currentUserId } from '../store.ts';
-import { formatDate } from '../utils.ts';
+
 
 export function renderChat(params: { sellerId: string, adId: string, initialMsg?: string }): string {
   if (!currentUserId) {
