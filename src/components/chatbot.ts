@@ -1,7 +1,7 @@
 import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 
-const token = ""; // ADD YOUR GITHUB TOKEN HERE (OR USE ENV VAR)
+const token = import.meta.env.VITE_GITHUB_TOKEN || ""; // Use Vite environment variable
 const endpoint = "https://models.github.ai/inference";
 const model = "mistral-ai/mistral-medium-2505";
 
