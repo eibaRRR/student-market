@@ -86,6 +86,34 @@ export function renderStudentDashboard(): string {
         </div>
       </aside>
 
+      <!-- Profile Edit Modal -->
+      <div id="edit-profile-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#050505]/80 backdrop-blur-sm" id="edit-profile-overlay"></div>
+        <div class="relative w-full max-w-md glass dark:bg-[#0a0a0a]/90 border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div class="bg-gradient-to-r from-[#0047FF] to-[#8000FF] p-6 text-white">
+            <h3 class="text-xl font-display font-bold">Modifier le profil</h3>
+            <p class="text-[10px] text-white/60 uppercase tracking-widest mt-1">Identité numérique</p>
+          </div>
+          
+          <form id="edit-profile-form" class="p-8 space-y-6">
+            <div>
+              <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 ml-1">Nom Complet</label>
+              <input type="text" id="edit-name" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none" placeholder="Votre nom">
+            </div>
+            
+            <div>
+              <label class="block text-[10px] text-white/40 uppercase tracking-widest mb-2 ml-1">Adresse Email</label>
+              <input type="email" id="edit-email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none" placeholder="votre@email.com">
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+              <button type="button" id="close-profile-modal" class="flex-1 py-3 rounded-xl bg-white/5 text-white/60 font-bold text-xs hover:bg-white/10 transition-all">Annuler</button>
+              <button type="submit" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#0047FF] to-[#8000FF] text-white font-bold text-xs shadow-lg hover:shadow-primary-500/20 transition-all">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Main Content Area -->
       <div class="w-full md:w-2/3 lg:w-3/4">
         
@@ -417,17 +445,32 @@ export function setupStudentLogic(params?: any) {
     });
   }
 
-  // Edit Profile Logic
+  // Edit Profile Logic (Modern Modal)
+  const profileModal = document.getElementById('edit-profile-modal');
+  const profileForm = document.getElementById('edit-profile-form') as HTMLFormElement;
+  const editNameInput = document.getElementById('edit-name') as HTMLInputElement;
+  const editEmailInput = document.getElementById('edit-email') as HTMLInputElement;
+
   document.getElementById('edit-profile-btn')?.addEventListener('click', () => {
     const user = getCurrentUser();
-    if (!user) return;
+    if (user) {
+      editNameInput.value = user.name;
+      editEmailInput.value = user.email;
+      profileModal?.classList.remove('hidden');
+    }
+  });
 
-    const newName = prompt('Nouveau nom :', user.name);
-    const newEmail = prompt('Nouvelle adresse email :', user.email);
+  const closeProfileModal = () => profileModal?.classList.add('hidden');
+  document.getElementById('close-profile-modal')?.addEventListener('click', closeProfileModal);
+  document.getElementById('edit-profile-overlay')?.addEventListener('click', closeProfileModal);
 
-    if (newName && newEmail) {
-      updateUserProfile(user.id, { name: newName, email: newEmail });
-      window.router.components.showToast('Profil mis à jour avec succès !', 'success');
+  profileForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = getCurrentUser();
+    if (user && editNameInput.value && editEmailInput.value) {
+      updateUserProfile(user.id, { name: editNameInput.value, email: editEmailInput.value });
+      window.router.components.showToast('Profil mis à jour !', 'success');
+      closeProfileModal();
       window.router.navigate('student'); // Re-render
     }
   });
