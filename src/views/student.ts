@@ -28,8 +28,9 @@ export function renderStudentDashboard(): string {
             <img src="${user.avatar}" class="w-full h-full rounded-3xl object-cover border-2 border-white/10" alt="Profil">
             <button id="change-avatar-btn" class="absolute inset-0 w-full h-full rounded-3xl bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[8px] font-bold uppercase tracking-widest border border-white/10">
               <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              Modifier
+              Importer
             </button>
+            <input type="file" id="avatar-upload" accept="image/*" class="hidden">
             ${karma > 500 ? '<div class="absolute -inset-2 bg-gradient-to-tr from-[#0047FF] to-[#8000FF] rounded-[2rem] -z-10 blur-md opacity-50"></div>' : ''}
             <div class="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-[#050505] shadow-lg"></div>
           </div>
@@ -257,14 +258,32 @@ export function setupStudentLogic(params?: any) {
     sectionAds?.classList.add('hidden');
   });
 
-  // Logic for changing avatar
-  document.getElementById('change-avatar-btn')?.addEventListener('click', () => {
-    const user = getCurrentUser();
-    const newUrl = prompt('Entrez l\'URL de votre nouvelle photo de profil :', user?.avatar || '');
-    if (newUrl && currentUserId) {
-      updateUserAvatar(currentUserId, newUrl);
-      window.router.components.showToast('Photo de profil mise à jour !', 'success');
-      window.router.navigate('student'); // Re-render
+  // Logic for changing avatar from local file
+  const avatarBtn = document.getElementById('change-avatar-btn');
+  const avatarInput = document.getElementById('avatar-upload') as HTMLInputElement;
+
+  avatarBtn?.addEventListener('click', () => {
+    avatarInput?.click();
+  });
+
+  avatarInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        window.router.components.showToast('L\'image est trop lourde (max 2Mo).', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        if (currentUserId) {
+          updateUserAvatar(currentUserId, base64String);
+          window.router.components.showToast('Photo de profil mise à jour !', 'success');
+          window.router.navigate('student'); // Re-render
+        }
+      };
+      reader.readAsDataURL(file);
     }
   });
 
