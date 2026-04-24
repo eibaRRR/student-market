@@ -260,7 +260,7 @@ export function addAd(ad: Omit<Ad, 'id' | 'createdAt' | 'status' | 'views'>) {
     ...ad,
     id: `ad${Date.now()}`,
     createdAt: new Date().toISOString(),
-    status: 'pending', // Validation requise par l'admin
+    status: 'active', // Directement actif pour simplifier l'expérience utilisateur
     views: 0
   };
   ads = [newAd, ...ads];

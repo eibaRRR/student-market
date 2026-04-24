@@ -44,8 +44,8 @@ export function renderCatalog(params?: { category?: string, search?: string }): 
           </div>
           
           <div>
-             <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Prix maximum : <span id="price-display">500</span>€</h3>
-             <input type="range" id="price-range" min="0" max="1500" value="500" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600">
+             <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Prix maximum : <span id="price-display">1000</span>€</h3>
+             <input type="range" id="price-range" min="0" max="1500" value="1000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600">
              <div class="flex justify-between text-xs text-gray-500 mt-2">
                <span>0€</span>
                <span>1500€+</span>
@@ -87,7 +87,7 @@ export function setupCatalogLogic(params?: { category?: string, search?: string 
   const resetBtn = document.getElementById('reset-filters');
 
   let activeCategory = params?.category || '';
-  let maxPrice = parseInt(priceRange.value);
+  let maxPrice = parseInt(priceRange.value) || 1500;
 
   const applyFilters = () => {
     const searchTerm = searchInput.value.toLowerCase();
@@ -98,6 +98,8 @@ export function setupCatalogLogic(params?: { category?: string, search?: string 
       const matchPrice = ad.price <= maxPrice;
       return matchSearch && matchCategory && matchPrice;
     });
+
+    console.log(`Catalogue: ${getAds().length} ads total, ${filteredAds.length} after filters (maxPrice: ${maxPrice})`);
 
     const sortSelect = document.getElementById('catalog-sort') as HTMLSelectElement;
     const sortValue = sortSelect ? sortSelect.value : 'recent';
@@ -157,6 +159,7 @@ export function setupCatalogLogic(params?: { category?: string, search?: string 
     searchInput.value = '';
     activeCategory = '';
     priceRange.value = '1500';
+    maxPrice = 1500;
     if (priceDisplay) priceDisplay.textContent = '1500';
     // Reset buttons UI visually...
     filterBtns.forEach(b => {

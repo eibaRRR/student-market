@@ -101,10 +101,17 @@ export function formatPrice(price: number): string {
 }
 
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date);
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Date inconnue';
+    }
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  } catch (e) {
+    return 'Date inconnue';
+  }
 }
