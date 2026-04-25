@@ -118,10 +118,17 @@ export function setupChatbot() {
     }
   }
 
-  const client = ModelClient(
-    endpoint,
-    new AzureKeyCredential(token)
-  );
+  const client = token ? ModelClient(endpoint, new AzureKeyCredential(token)) : null;
+
+  function offlineReply(text: string): string {
+    const t = text.toLowerCase();
+    if (/(bonjour|salut|hello|coucou)/.test(t)) return "Bonjour ! Je peux vous aider à explorer le catalogue, créer une annonce ou répondre à vos questions sur StudentMarket.";
+    if (/(prix|tarif|combien)/.test(t)) return "Vous pouvez filtrer le catalogue par fourchette de prix dans la barre latérale gauche du catalogue.";
+    if (/(vendre|publier|annonce)/.test(t)) return "Pour publier une annonce, ouvrez votre tableau de bord puis cliquez sur \"Publier une annonce\".";
+    if (/(zone|safe|sécurité|securite)/.test(t)) return "Sur la page d'une annonce, le bouton \"Safe Zones\" affiche les lieux d'échange recommandés sur le campus.";
+    if (/(karma|badge)/.test(t)) return "Le Digital Karma augmente avec vos ventes et avis positifs. Les badges récompensent vos actions clés !";
+    return "Je suis en mode hors-ligne (clé IA non configurée), mais voici quelques pistes : essayez la recherche (⌘K), explorez le catalogue, ou consultez vos notifications. 🛰️";
+  }
 
   async function handleSend() {
     const text = input.value.trim();
@@ -136,6 +143,16 @@ export function setupChatbot() {
     typingDiv.className = 'text-gray-500 text-xs italic';
     typingDiv.textContent = 'MIGO écrit...';
     messagesContainer?.appendChild(typingDiv);
+
+    if (!client) {
+      setTimeout(() => {
+        typingDiv.remove();
+        const reply = offlineReply(text);
+        appendMessage('assistant', reply);
+        chatHistory.push({ role: 'assistant', content: reply });
+      }, 600);
+      return;
+    }
 
     try {
       const response = await client.path("/chat/completions").post({

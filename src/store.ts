@@ -1,4 +1,4 @@
-import { Ad, User, Category, Stats, AdStatus, Message, PulseEvent } from './types.ts';
+import { Ad, User, Category, Stats, AdStatus, Message, PulseEvent, AppNotification, NotificationType, AdWatcher } from './types.ts';
 
 // Données initiales si localStorage est vide
 const initialUsers: User[] = [
@@ -189,7 +189,6 @@ export function rateUser(targetUserId: string, fromUserId: string, score: number
     if (existing) existing.score = score;
     else user.ratings.push({ fromUserId, score });
     persistUsers();
-    persistUsers();
   }
 }
 
@@ -231,6 +230,19 @@ export function sendMessage(senderId: string, receiverId: string, adId: string, 
   };
   messages.push(msg);
   persistMessages();
+
+  // Notify the receiver (skip self-conversations / system replies to current user)
+  const sender = users.find(u => u.id === senderId);
+  if (sender && receiverId !== senderId) {
+    addNotification(
+      receiverId,
+      'message',
+      `Nouveau message de ${sender.name}`,
+      content.length > 80 ? content.slice(0, 77) + '…' : content,
+      { view: 'chat', params: { sellerId: senderId, adId } }
+    );
+  }
+
   return msg;
 }
 
@@ -288,8 +300,20 @@ export function updateAdStatus(id: string, status: AdStatus) {
 export function editAd(id: string, updates: Partial<Ad>) {
   const ad = ads.find(a => a.id === id);
   if (ad) {
+    const previousPrice = ad.price;
     Object.assign(ad, updates);
     persistAds();
+
+    // Fire price-drop notifications to watchers if price decreased
+    if (typeof updates.price === 'number' && updates.price < previousPrice) {
+      const adWatchers = watchers.filter(w => w.adId === ad.id);
+      adWatchers.forEach(w => {
+        addNotification(w.userId, 'price_drop', 'Baisse de prix !', `${ad.title} est passé de ${previousPrice}€ à ${ad.price}€.`, { view: 'details', params: { id: ad.id } });
+        w.lastSeenPrice = ad.price;
+      });
+      if (adWatchers.length > 0) saveData('market_watchers', watchers);
+      addPulseEvent('price_drop', `Baisse de prix sur "${ad.title}"`);
+    }
   }
 }
 
@@ -329,4 +353,123 @@ export function addPulseEvent(type: PulseEvent['type'], message: string) {
   };
   pulseEvents = [event, ...pulseEvents.slice(0, 9)]; // Keep last 10
   saveData('market_pulse', pulseEvents);
+}
+
+// ─── In-app notifications ─────────────────────────────────────────────────
+export let notifications: AppNotification[] = loadData('market_notifications', []);
+
+export function addNotification(
+  userId: string,
+  type: NotificationType,
+  title: string,
+  body: string,
+  link?: AppNotification['link']
+) {
+  const note: AppNotification = {
+    id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    userId,
+    type,
+    title,
+    body,
+    link,
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+  notifications = [note, ...notifications].slice(0, 200);
+  saveData('market_notifications', notifications);
+  return note;
+}
+
+export function getNotificationsFor(userId: string): AppNotification[] {
+  return notifications
+    .filter(n => n.userId === userId)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
+export function getUnreadCount(userId: string): number {
+  return notifications.filter(n => n.userId === userId && !n.read).length;
+}
+
+export function markNotificationRead(id: string) {
+  const n = notifications.find(x => x.id === id);
+  if (n) {
+    n.read = true;
+    saveData('market_notifications', notifications);
+  }
+}
+
+export function markAllRead(userId: string) {
+  let touched = false;
+  notifications.forEach(n => {
+    if (n.userId === userId && !n.read) {
+      n.read = true;
+      touched = true;
+    }
+  });
+  if (touched) saveData('market_notifications', notifications);
+}
+
+export function clearNotifications(userId: string) {
+  notifications = notifications.filter(n => n.userId !== userId);
+  saveData('market_notifications', notifications);
+}
+
+// ─── Ad watchers (price-drop alerts) ──────────────────────────────────────
+export let watchers: AdWatcher[] = loadData('market_watchers', []);
+
+export function isWatching(userId: string, adId: string): boolean {
+  return watchers.some(w => w.userId === userId && w.adId === adId);
+}
+
+export function toggleWatch(userId: string, adId: string): boolean {
+  const ad = ads.find(a => a.id === adId);
+  if (!ad) return false;
+  const idx = watchers.findIndex(w => w.userId === userId && w.adId === adId);
+  if (idx === -1) {
+    watchers.push({ userId, adId, lastSeenPrice: ad.price, createdAt: new Date().toISOString() });
+    saveData('market_watchers', watchers);
+    return true;
+  }
+  watchers.splice(idx, 1);
+  saveData('market_watchers', watchers);
+  return false;
+}
+
+export function getWatchersForAd(adId: string): AdWatcher[] {
+  return watchers.filter(w => w.adId === adId);
+}
+
+// ─── Recently viewed ads ──────────────────────────────────────────────────
+const RECENT_KEY = 'market_recent_viewed';
+const RECENT_MAX = 12;
+
+export function trackRecentlyViewed(adId: string) {
+  const list: string[] = loadData<string[]>(RECENT_KEY, []);
+  const next = [adId, ...list.filter(id => id !== adId)].slice(0, RECENT_MAX);
+  saveData(RECENT_KEY, next);
+}
+
+export function getRecentlyViewedAds(): Ad[] {
+  const list: string[] = loadData<string[]>(RECENT_KEY, []);
+  return list
+    .map(id => ads.find(a => a.id === id))
+    .filter((a): a is Ad => !!a && a.status === 'active');
+}
+
+// ─── Related/recommended ads ──────────────────────────────────────────────
+export function getRelatedAds(adId: string, max = 4): Ad[] {
+  const ad = ads.find(a => a.id === adId);
+  if (!ad) return [];
+  return ads
+    .filter(a => a.id !== adId && a.status === 'active' && a.category === ad.category)
+    .sort((a, b) => Math.abs(a.price - ad.price) - Math.abs(b.price - ad.price))
+    .slice(0, max);
+}
+
+// ─── User helpers ─────────────────────────────────────────────────────────
+export function getUserAverageRating(userId: string): { avg: number; count: number } {
+  const u = users.find(x => x.id === userId);
+  if (!u || !u.ratings || u.ratings.length === 0) return { avg: 0, count: 0 };
+  const total = u.ratings.reduce((s, r) => s + r.score, 0);
+  return { avg: total / u.ratings.length, count: u.ratings.length };
 }

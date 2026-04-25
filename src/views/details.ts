@@ -1,5 +1,6 @@
-import { getAdById, getUserById } from '../store.ts';
-import { formatPrice, formatDate } from '../utils.ts';
+import { getAdById, getUserById, getRelatedAds, isWatching, toggleWatch, trackRecentlyViewed, sendMessage, currentUserId, addNotification } from '../store.ts';
+import { formatPrice, formatDate, showToast } from '../utils.ts';
+import { createAdCard } from '../components.ts';
 
 export function renderDetails(params: { id: string }): string {
   const ad = getAdById(params.id);
@@ -50,7 +51,7 @@ export function renderDetails(params: { id: string }): string {
               <div class="flex items-center">
                 <img src="${user?.avatar}" class="w-12 h-12 rounded-full border-2 border-primary-100 dark:border-primary-900/50" alt="${user?.name}">
                 <div class="ml-4">
-                  <p class="font-bold text-gray-900 dark:text-white">${user?.name}</p>
+                  <button type="button" onclick="window.router.navigate('user', { id: '${user?.id}' })" class="font-bold text-gray-900 dark:text-white hover:text-primary-500 transition-colors text-left">${user?.name}</button>
                   <div class="flex items-center text-sm text-amber-500">
                     <svg class="w-4 h-4 mr-1 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                     <span class="font-bold">${ratingAvg}</span>
@@ -78,8 +79,24 @@ export function renderDetails(params: { id: string }): string {
                 </div>
               </div>
 
-              <button id="btn-report-ad" class="btn btn-outline border-slate-200 dark:border-dark-border flex-none px-4 hover:text-red-600 hover:border-red-600 dark:hover:text-red-500 transition-colors" title="Signaler l'annonce">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              <button id="btn-report-ad" aria-label="Signaler l'annonce" class="btn btn-outline border-slate-200 dark:border-dark-border flex-none px-4 hover:text-red-600 hover:border-red-600 dark:hover:text-red-500 transition-colors" title="Signaler l'annonce">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              </button>
+            </div>
+
+            <!-- Secondary action row -->
+            <div class="mt-3 grid grid-cols-3 gap-3">
+              <button id="btn-make-offer" type="button" class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-emerald-400/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all text-sm font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Faire une offre
+              </button>
+              <button id="btn-watch-ad" type="button" class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:border-white/20 transition-all text-sm font-bold">
+                <svg id="watch-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <span id="watch-label">Surveiller</span>
+              </button>
+              <button id="btn-share-ad" type="button" class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:border-white/20 transition-all text-sm font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                Partager
               </button>
             </div>
 
@@ -103,6 +120,39 @@ export function renderDetails(params: { id: string }): string {
           </div>
         </div>
       </div>
+
+      <!-- Make an offer modal -->
+      <div id="offer-overlay" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md hidden flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Faire une offre">
+        <div class="w-full max-w-md glass-panel rounded-3xl p-8 shadow-2xl">
+          <h3 class="text-2xl font-display font-black text-white mb-2">Faire une offre</h3>
+          <p class="text-white/50 text-sm mb-6">Le vendeur recevra votre proposition dans son chat.</p>
+          <div class="flex items-baseline gap-3 mb-6">
+            <span class="text-[10px] text-white/40 uppercase tracking-widest">Prix demandé</span>
+            <span class="text-xl font-display font-bold text-white">${formatPrice(ad.price)}</span>
+          </div>
+          <label for="offer-input" class="block text-[10px] text-white/40 uppercase tracking-widest mb-2">Votre offre (€)</label>
+          <input id="offer-input" type="number" min="1" step="1" value="${Math.max(1, Math.round(ad.price * 0.9))}"
+            class="w-full bg-black/40 border border-white/10 text-white text-2xl font-bold rounded-2xl px-4 py-3 mb-2 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400" />
+          <p id="offer-hint" class="text-xs text-white/40 mb-6">Conseil : restez raisonnable pour augmenter vos chances.</p>
+          <div class="flex gap-3">
+            <button id="offer-cancel" type="button" class="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-colors text-sm font-bold">Annuler</button>
+            <button id="offer-send" type="button" class="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all text-sm font-bold">Envoyer l'offre</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related ads -->
+      ${getRelatedAds(ad.id, 4).length > 0 ? `
+      <section class="mt-12">
+        <div class="flex items-end justify-between mb-5">
+          <h2 class="text-2xl font-display font-bold text-white">Vous pourriez aussi aimer</h2>
+          <button onclick="window.router.navigate('catalog', { category: '${ad.category}' })" class="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">Plus de ${ad.category} →</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          ${getRelatedAds(ad.id, 4).map(createAdCard).join('')}
+        </div>
+      </section>
+      ` : ''}
 
       <!-- AR Overlay Modal -->
       <div id="ar-overlay" class="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md hidden flex-col items-center justify-center p-4">
@@ -225,7 +275,106 @@ export function renderDetails(params: { id: string }): string {
 
 // Nous devons ajouter un listener pour le signalement après le rendu
 export function setupDetailsLogic(id: string) {
+  trackRecentlyViewed(id);
+
   setTimeout(() => {
+    // Watch toggle
+    const watchBtn = document.getElementById('btn-watch-ad');
+    const watchLabel = document.getElementById('watch-label');
+    const watchIcon = document.getElementById('watch-icon');
+    const refreshWatchUI = () => {
+      if (!currentUserId || !watchBtn || !watchLabel || !watchIcon) return;
+      if (isWatching(currentUserId, id)) {
+        watchLabel.textContent = 'Surveillé';
+        watchBtn.classList.add('bg-[#0047FF]/20', 'border-[#0047FF]/40', 'text-white');
+        watchBtn.classList.remove('bg-white/5', 'border-white/10');
+        watchIcon.setAttribute('fill', 'currentColor');
+      } else {
+        watchLabel.textContent = 'Surveiller';
+        watchBtn.classList.remove('bg-[#0047FF]/20', 'border-[#0047FF]/40');
+        watchBtn.classList.add('bg-white/5', 'border-white/10');
+        watchIcon.setAttribute('fill', 'none');
+      }
+    };
+    refreshWatchUI();
+    watchBtn?.addEventListener('click', () => {
+      if (!currentUserId) {
+        showToast('Connectez-vous pour surveiller cette annonce.', 'info');
+        return;
+      }
+      const nowWatching = toggleWatch(currentUserId, id);
+      showToast(nowWatching ? 'Annonce surveillée. Vous serez notifié des baisses de prix.' : 'Surveillance retirée.', nowWatching ? 'success' : 'info');
+      refreshWatchUI();
+    });
+
+    // Share
+    document.getElementById('btn-share-ad')?.addEventListener('click', async () => {
+      const url = `${window.location.origin}/?ad=${encodeURIComponent(id)}`;
+      const title = document.title;
+      const nav = navigator as Navigator & { share?: (data: { title?: string; url?: string }) => Promise<void> };
+      if (nav.share) {
+        try {
+          await nav.share({ title, url });
+          return;
+        } catch { /* user cancelled */ }
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Lien copié dans le presse-papier !', 'success');
+      } catch {
+        showToast('Impossible de partager. Copiez l\'URL manuellement.', 'error');
+      }
+    });
+
+    // Offer modal
+    const offerOverlay = document.getElementById('offer-overlay');
+    const offerInput = document.getElementById('offer-input') as HTMLInputElement | null;
+    const offerHint = document.getElementById('offer-hint');
+    const ad = getAdById(id);
+    document.getElementById('btn-make-offer')?.addEventListener('click', () => {
+      if (!currentUserId) {
+        showToast('Connectez-vous pour faire une offre.', 'info');
+        return;
+      }
+      if (!ad) return;
+      if (currentUserId === ad.userId) {
+        showToast('Vous ne pouvez pas faire une offre sur votre propre annonce.', 'info');
+        return;
+      }
+      offerOverlay?.classList.remove('hidden');
+      offerOverlay?.classList.add('flex');
+      offerInput?.focus();
+    });
+    document.getElementById('offer-cancel')?.addEventListener('click', () => {
+      offerOverlay?.classList.add('hidden');
+      offerOverlay?.classList.remove('flex');
+    });
+    offerInput?.addEventListener('input', () => {
+      if (!ad || !offerHint) return;
+      const v = parseFloat(offerInput.value);
+      if (isNaN(v) || v <= 0) { offerHint.textContent = 'Entrez un montant valide.'; return; }
+      const ratio = v / ad.price;
+      if (ratio < 0.5) offerHint.textContent = 'Offre très basse — peu de chances d\'aboutir.';
+      else if (ratio < 0.85) offerHint.textContent = 'Offre raisonnable. Bonne chance !';
+      else if (ratio < 1) offerHint.textContent = 'Offre généreuse, le vendeur l\'appréciera.';
+      else offerHint.textContent = 'Au-dessus du prix demandé — étonnant mais audacieux.';
+    });
+    document.getElementById('offer-send')?.addEventListener('click', () => {
+      if (!ad || !currentUserId || !offerInput) return;
+      const v = parseFloat(offerInput.value);
+      if (isNaN(v) || v <= 0) {
+        showToast('Entrez un montant valide.', 'error');
+        return;
+      }
+      const message = `💰 Offre proposée : ${formatPrice(v)} pour "${ad.title}". Êtes-vous intéressé·e ?`;
+      sendMessage(currentUserId, ad.userId, ad.id, message);
+      addNotification(ad.userId, 'offer_received', `Nouvelle offre sur ${ad.title}`, `${formatPrice(v)} proposé·e par un acheteur.`, { view: 'chat', params: { sellerId: currentUserId, adId: ad.id } });
+      showToast('Offre envoyée au vendeur.', 'success');
+      offerOverlay?.classList.add('hidden');
+      offerOverlay?.classList.remove('flex');
+      window.router.navigate('chat', { sellerId: ad.userId, adId: ad.id });
+    });
+
     document.getElementById('btn-report-ad')?.addEventListener('click', async () => {
       const isConfirmed = await window.router.components.showConfirm('Signaler ?', 'Voulez-vous vraiment signaler cette annonce ?', 'warning');
       if (isConfirmed) {
