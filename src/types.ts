@@ -68,3 +68,30 @@ export interface PulseEvent {
   message: string;
   timestamp: string;
 }
+
+export type NotificationType =
+  | 'message'
+  | 'ad_approved'
+  | 'ad_reported'
+  | 'price_drop'
+  | 'offer_received'
+  | 'offer_accepted'
+  | 'system';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link?: { view: string; params?: Record<string, unknown> };
+  timestamp: string;
+  read: boolean;
+}
+
+export interface AdWatcher {
+  userId: string;
+  adId: string;
+  lastSeenPrice: number;
+  createdAt: string;
+}

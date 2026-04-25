@@ -1,0 +1,12 @@
+{
+  "name": "StudentMarket — Neo-Digitalism",
+  "short_name": "SMarket",
+  "description": "Marketplace P2P pour étudiants à Tanger.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#0047FF",
+  "icons": [
+    { "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

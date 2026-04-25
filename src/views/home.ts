@@ -1,10 +1,12 @@
-import { getAds } from '../store.ts';
+import { getAds, getRecentlyViewedAds } from '../store.ts';
 import { formatPrice } from '../utils.ts';
+import { createAdCard } from '../components.ts';
 
 export function renderHome(): string {
   const latestAds = getAds()
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 4);
+  const recent = getRecentlyViewedAds().slice(0, 4);
 
   return `
     <!-- Ethereal Ghost Background Elements (Full Screen) -->
@@ -81,6 +83,20 @@ export function renderHome(): string {
         `).join('')}
       </div>
 
+      ${recent.length > 0 ? `
+      <section class="mt-24 w-full relative z-10">
+        <div class="flex items-end justify-between mb-6">
+          <div>
+            <p class="text-[10px] uppercase tracking-[0.3em] text-[#00FFFF]/80 mb-2">Mémoire neuronale</p>
+            <h2 class="text-3xl font-display font-black text-white">Récemment consultées</h2>
+          </div>
+          <button onclick="window.router.navigate('catalog')" class="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">Voir le catalogue →</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          ${recent.map(createAdCard).join('')}
+        </div>
+      </section>
+      ` : ''}
     </div>
   `;
 }

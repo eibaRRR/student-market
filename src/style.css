@@ -227,3 +227,70 @@
 .glass {
   @apply bg-white/70 dark:bg-[#111111]/70 backdrop-blur-xl border border-white/20 dark:border-dark-border shadow-xl;
 }
+
+/* Dual range slider — Neo-Digitalism */
+.dual-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 100%;
+  background: transparent;
+  outline: none;
+}
+.dual-range::-webkit-slider-runnable-track,
+.dual-range::-moz-range-track {
+  background: transparent;
+  border: none;
+  height: 100%;
+}
+.dual-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0047FF, #8000FF);
+  border: 2px solid #050505;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 0 12px rgba(0, 71, 255, 0.5);
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+.dual-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0047FF, #8000FF);
+  border: 2px solid #050505;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 0 12px rgba(0, 71, 255, 0.5);
+  cursor: pointer;
+}
+
+/* Mesh background animation (used by main canvas) */
+@keyframes mesh-shift {
+  0%, 100% { background-position: 0% 0%, 100% 100%, 50% 50%; }
+  50% { background-position: 100% 100%, 0% 0%, 50% 50%; }
+}
+.animate-mesh {
+  background-size: 80% 80%, 80% 80%, 100% 100%;
+  animation: mesh-shift 25s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility (used by chatbot list) */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; }
+
+/* Focus-visible polish */
+:focus-visible {
+  outline: 2px solid rgba(0, 71, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob, .animate-levitate, .animate-mesh, .animate-scan-line, .animate-fade-in, .animate-pulse, .animate-bounce, .animate-ticker {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
