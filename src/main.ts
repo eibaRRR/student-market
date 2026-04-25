@@ -108,13 +108,10 @@ const Router = {
     const container = document.getElementById('auth-sidebar-container');
     const fab = document.getElementById('fab-container');
 
-    if (user && fab) {
-      fab.classList.remove('hidden');
-      fab.classList.add('md:flex');
-    }
-    else if (fab) {
+    if (fab) {
       fab.classList.add('hidden');
-      fab.classList.remove('md:flex');
+      if (user) fab.classList.add('md:flex');
+      else fab.classList.remove('md:flex');
     }
 
     refreshNotificationBadge();
